@@ -12,6 +12,7 @@ Udacity 前端开发纳米学位的 React 版街区地图项目
 - google-maps-react ：用于使用以 React 的 Component 类形式包装的 Google Map 各种对象
 - 通过 Google Maps API 获取 Goolge 地图和特定的餐厅的位置信息（详情参见：https://cloud.google.com/maps-platform/）
 - 通过 Foursquare API 获取 Foursquare 网站上的餐厅信息（详情参见：https://developer.foursquare.com/）
+    - **注意：这个 API 每天有查询次数上限，超过次数则会查询失败**
 - 使用了 bootstrap 的 css 样式文件
 
 
