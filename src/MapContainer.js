@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from 'prop-types';
 import { Map, InfoWindow, Marker, GoogleApiWrapper } from "google-maps-react";
 import escapeRegExp from "escape-string-regexp";
+import sizeMe from 'react-sizeme';
 
 import * as FoursquareAPI from "./FoursquareAPI";
 import ListCard from "./ListCard";
@@ -24,7 +25,8 @@ export class MapContainer extends React.Component {
     this.state = {
       showingPlaces: [], // 目前所有可显示的地点列表
       selectedPlace: {}, // 当前选中的地点
-      venue: {} // 所在地点的详细信息
+      venueData: {}, // 所在地点的详细信息
+      mapWidth: {}   // 当前地图外框的宽度
     };
 
     this.updateShowingPlaces = this.updateShowingPlaces.bind(this);
@@ -68,17 +70,13 @@ export class MapContainer extends React.Component {
     });
 
     FoursquareAPI.getVenueDetail(placeId).then(data => {
-      if (data.status === "success") {
-        this.setState({ venue: data.content });
-      } else {
-        this.setState({ venue: {} });
-      }
+      this.setState({ venueData: data });
     });
   };
 
   // 取消当前选中的地点
   unSelectPlace = () => {
-    this.setState({ selectedPlace: {} });
+    this.setState({ selectedPlace: {}, venueData: {} });
   };
 
   // 点击Marker
@@ -92,14 +90,42 @@ export class MapContainer extends React.Component {
   };
 
   render() {
-    const { showingPlaces, selectedPlace, venue } = this.state;
+    const { showingPlaces, selectedPlace, venueData } = this.state;
+
+    const { width } = this.props.size;
 
     let photoUrl;
 
-    if (venue && venue.bestPhoto) {
+    if (venueData && venueData.status === "success") {
       photoUrl =
-        venue.bestPhoto["prefix"] + "width200" + venue.bestPhoto["suffix"];
+        venueData.content.bestPhoto["prefix"] + "width200" + venueData.content.bestPhoto["suffix"];
     }
+
+    let infoContent;
+
+    if (!venueData) {
+      infoContent = (<div>
+        <h4>Loading Content...</h4>
+      </div>)
+    }
+    else if (venueData.status === "success") {
+      infoContent = (<div>
+        <h3>
+          <a href={venueData.content.canonicalUrl}>{venueData.content.name}</a>
+        </h3>
+        <h1>{selectedPlace.name}</h1>
+        <h4>Rating: {venueData.content.rating}</h4>
+        <h4>Price: {venueData.content.price.message}</h4>
+        <img src={photoUrl} alt={venueData.content.name + " image"} />
+      </div>)
+    }
+    else if (venueData.status === "error") {
+      infoContent = (<div>
+        <h3>Error Code {venueData.content}</h3>
+        <h4>Content For This Place Not Found!</h4>
+      </div>)
+    }
+
 
     return (
       <Map
@@ -126,6 +152,7 @@ export class MapContainer extends React.Component {
           selectedPlace={this.state.selectedPlace}
           onUpdateShowingPlaces={this.updateShowingPlaces}
           onSelectPlace={this.selectPlace}
+          mapWidth={width}
         />
 
         <InfoWindow
@@ -133,35 +160,20 @@ export class MapContainer extends React.Component {
             selectedPlace
               ? selectedPlace.pos
               : {
-                  lat: 22.274208,
-                  lng: 114.174143
-                }
+                lat: 22.274208,
+                lng: 114.174143
+              }
           }
           visible={selectedPlace ? true : false}
           onClose={this.onCloseInfoWindow}
         >
-          {venue && venue.price ? (
-            <div>
-              <h3>
-                <a href={venue.canonicalUrl}>{venue.name}</a>
-              </h3>
-              <h1>{selectedPlace.name}</h1>
-              <h4>Rating: {venue.rating}</h4>
-              <h4>Price: {venue.price.message}</h4>
-              <img src={photoUrl} alt="Loading Content..." />
-            </div>
-          ) : (
-            <div>
-              <h3>Error</h3>
-              <h4>Content For This Place Not Found!</h4>
-            </div>
-          )}
+          {infoContent}
         </InfoWindow>
       </Map>
     );
   }
 }
 
-export default GoogleApiWrapper({
+export default sizeMe()(GoogleApiWrapper({
   apiKey: "AIzaSyD0s2IzInNw6599JGYFvgvDZ7s91cbavrM"
-})(MapContainer);
+})(MapContainer));
