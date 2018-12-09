@@ -10,7 +10,7 @@ class MyInfoWindow extends React.Component {
 
   constructor(props) {
     super(props);
-    
+
     this.onCloseInfoWindow = this.onCloseInfoWindow.bind(this);
   }
 
@@ -51,7 +51,7 @@ class MyInfoWindow extends React.Component {
             <h1>{selectedPlace.name}</h1>
             <h4>Rating: {venue.rating}</h4>
             <h4>Price: {venue.price.message}</h4>
-            <img src={photoUrl} alt="Loading Content..." />
+            <img src={photoUrl} alt={venue.name + " image"} />
           </div>
         ) : (
           "Content For This Place Not Found!"
